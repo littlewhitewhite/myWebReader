@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 Mozilla Foundation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Adobe CMap resources are covered by their own copyright but the same license:
+
+    Copyright 1990-2015 Adobe Systems Incorporated.
+
+See https://github.com/adobe-type-tools/cmap-resources
+-->
+<html dir="ltr" mozdisallowselectionprint>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<!--#if GENERIC || CHROME-->
+    <meta name="google" content="notranslate">
+<!--#endif-->
+<!--#if GENERIC-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!--#endif-->
+    <title>CAJViewer For Electron</title>
+
+<!--#if MOZCENTRAL-->
+<!--#include viewer-snippet-firefox-extension.html-->
+<!--#endif-->
+<!--#if CHROME-->
+<!--#include viewer-snippet-chrome-extension.html-->
+<!--#endif-->
+
+    <link rel="stylesheet" href="viewer.css">
+<!--#if !PRODUCTION-->
+    <link rel="resource" type="application/l10n" href="locale/locale.properties">
+<!--#endif-->
+
+<!--#if !PRODUCTION-->
+    <!-- <script src="../node_modules/systemjs/dist/system.js"></script>
+    <script src="../systemjs.config.js"></script> -->
+<!--#endif-->
+
+<!--#if (GENERIC && !MINIFIED) -->
+<!--#include viewer-snippet.html-->
+<!--#endif-->
+
+<!--#if !MINIFIED -->
+    <!-- <script src="viewer.js"></script> -->
+<!--#else-->
+
+
+<!--#include viewer-snippet-minified.html-->
+<!--#endif-->
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+  </head>
+  <body tabindex="1" class="" onload="drawPage()">
+    <div id="outerContainer">
+
+      <div id="sidebarContainer">
+        <div id="toolbarSidebar">
+          <div class="splitToolbarButton toggled">
+            <button id="viewThumbnail" class="toolbarButton toggled" title="显示缩略图" tabindex="2" data-l10n-id="thumbs">
+               <span data-l10n-id="thumbs_label">缩略图</span>
+            </button>
+            <button id="viewOutline" class="toolbarButton" title="显示文档大纲（双击展开/折叠所有项）" tabindex="3" data-l10n-id="document_outline" disabled="">
+               <span data-l10n-id="document_outline_label">文档大纲</span>
+            </button>
+            <button id="viewAttachments" class="toolbarButton" title="显示附件" tabindex="4" data-l10n-id="attachments" disabled="">
+               <span data-l10n-id="attachments_label">附件</span>
+            </button>
+          </div>
+        </div>
+        <div id="sidebarContent">
+          <div id="thumbnailView">
+            <a href="#page=1" title="页码 1">
+              <div class="thumbnail selected" data-page-number="1">
+              <div class="thumbnailSelectionRing" style="width: 100px; height: 128px;"></div>
+            </div>
+            </a>
+        <a href="#page=2" title="页码 2">
+            <div class="thumbnail" data-page-number="2">
+              <div class="thumbnailSelectionRing" style="width: 100px; height: 128px;">
+              </div></div>
+        </a>
+        </div>
+          <div id="outlineView" class="hidden"></div>
+          <div id="attachmentsView" class="hidden"></div>
+        </div>
+        <div id="sidebarResizer" class=""></div>
+      </div>  <!-- sidebarContainer -->
+
+      <div id="mainContainer">
+        <div class="findbar hidden doorHanger" id="findbar">
+          <div id="findbarInputContainer">
+            <input id="findInput" class="toolbarField" title="查找" placeholder="在文档中查找…" tabindex="91" data-l10n-id="find_input" data-status="">
+            <div class="splitToolbarButton">
+              <button id="findPrevious" class="toolbarButton findPrevious" title="查找词语上一次出现的位置" tabindex="92" data-l10n-id="find_previous">
+                <span data-l10n-id="find_previous_label">上一页</span>
+              </button>
+              <div class="splitToolbarButtonSeparator"></div>
+              <button id="findNext" class="toolbarButton findNext" title="查找词语后一次出现的位置" tabindex="93" data-l10n-id="find_next">
+                <span data-l10n-id="find_next_label">下一页</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="findbarOptionsOneContainer">
+            <input type="checkbox" id="findHighlightAll" class="toolbarField" tabindex="94">
+            <label for="findHighlightAll" class="toolbarLabel" data-l10n-id="find_highlight">全部高亮显示</label>
+            <input type="checkbox" id="findMatchCase" class="toolbarField" tabindex="95">
+            <label for="findMatchCase" class="toolbarLabel" data-l10n-id="find_match_case_label">区分大小写</label>
+          </div>
+          <div id="findbarOptionsTwoContainer">
+            <input type="checkbox" id="findEntireWord" class="toolbarField" tabindex="96">
+            <label for="findEntireWord" class="toolbarLabel" data-l10n-id="find_entire_word_label">字词匹配</label>
+            <span id="findResultsCount" class="toolbarLabel hidden"></span>
+          </div>
+
+          <div id="findbarMessageContainer">
+            <span id="findMsg" class="toolbarLabel"></span>
+          </div>
+        </div>  <!-- findbar -->
+
+        <div id="secondaryToolbar" class="secondaryToolbar hidden doorHangerRight">
+          <div id="secondaryToolbarButtonContainer">
+            <button id="secondaryPresentationMode" class="secondaryToolbarButton presentationMode visibleLargeView" title="切换到演示模式" tabindex="51" data-l10n-id="presentation_mode">
+              <span data-l10n-id="presentation_mode_label">演示模式</span>
+            </button>
+
+            <button id="secondaryOpenFile" class="secondaryToolbarButton openFile visibleLargeView" title="打开文件" tabindex="52" data-l10n-id="open_file">
+              <span data-l10n-id="open_file_label">打开</span>
+            </button>
+
+            <button id="secondaryPrint" class="secondaryToolbarButton print visibleMediumView" title="打印" tabindex="53" data-l10n-id="print">
+              <span data-l10n-id="print_label">打印</span>
+            </button>
+
+            <button id="secondaryDownload" class="secondaryToolbarButton download visibleMediumView" title="下载" tabindex="54" data-l10n-id="download" hidden="true">
+              <span data-l10n-id="download_label">下载</span>
+            </button>
+
+            <a href="#page=1&amp;zoom=auto,-169,792" id="secondaryViewBookmark" class="secondaryToolbarButton bookmark visibleSmallView" title="当前在看的内容（复制或在新窗口中打开）" tabindex="55" data-l10n-id="bookmark" hidden="true">
+              <span data-l10n-id="bookmark_label">当前在看</span>
+            </a>
+
+            <div class="horizontalToolbarSeparator visibleLargeView"></div>
+
+            <button id="firstPage" class="secondaryToolbarButton firstPage" title="转到第一页" tabindex="56" data-l10n-id="first_page" disabled="">
+              <span data-l10n-id="first_page_label">转到第一页</span>
+            </button>
+            <button id="lastPage" class="secondaryToolbarButton lastPage" title="转到最后一页" tabindex="57" data-l10n-id="last_page">
+              <span data-l10n-id="last_page_label">转到最后一页</span>
+            </button>
+
+            <div class="horizontalToolbarSeparator"></div>
+
+            <button id="pageRotateCw" class="secondaryToolbarButton rotateCw" title="顺时针旋转" tabindex="58" data-l10n-id="page_rotate_cw">
+              <span data-l10n-id="page_rotate_cw_label">顺时针旋转</span>
+            </button>
+            <button id="pageRotateCcw" class="secondaryToolbarButton rotateCcw" title="逆时针旋转" tabindex="59" data-l10n-id="page_rotate_ccw">
+              <span data-l10n-id="page_rotate_ccw_label">逆时针旋转</span>
+            </button>
+
+            <div class="horizontalToolbarSeparator"></div>
+
+            <button id="cursorSelectTool" class="secondaryToolbarButton selectTool toggled" title="启用文本选择工具" tabindex="60" data-l10n-id="cursor_text_select_tool">
+              <span data-l10n-id="cursor_text_select_tool_label">文本选择工具</span>
+            </button>
+            <button id="cursorHandTool" class="secondaryToolbarButton handTool" title="启用手形工具" tabindex="61" data-l10n-id="cursor_hand_tool">
+              <span data-l10n-id="cursor_hand_tool_label">手形工具</span>
+            </button>
+
+            <div class="horizontalToolbarSeparator"></div>
+
+            <button id="scrollVertical" class="secondaryToolbarButton scrollModeButtons scrollVertical toggled" title="使用垂直滚动" tabindex="62" data-l10n-id="scroll_vertical">
+              <span data-l10n-id="scroll_vertical_label">垂直滚动</span>
+            </button>
+            <button id="scrollHorizontal" class="secondaryToolbarButton scrollModeButtons scrollHorizontal" title="使用水平滚动" tabindex="63" data-l10n-id="scroll_horizontal">
+              <span data-l10n-id="scroll_horizontal_label">水平滚动</span>
+            </button>
+            <button id="scrollWrapped" class="secondaryToolbarButton scrollModeButtons scrollWrapped" title="使用平铺滚动" tabindex="64" data-l10n-id="scroll_wrapped">
+              <span data-l10n-id="scroll_wrapped_label">平铺滚动</span>
+            </button>
+
+            <div class="horizontalToolbarSeparator scrollModeButtons"></div>
+
+            <button id="spreadNone" class="secondaryToolbarButton spreadModeButtons spreadNone toggled" title="不加入衔接页" tabindex="65" data-l10n-id="spread_none">
+              <span data-l10n-id="spread_none_label">单页视图</span>
+            </button>
+            <button id="spreadOdd" class="secondaryToolbarButton spreadModeButtons spreadOdd" title="加入衔接页使奇数页作为起始页" tabindex="66" data-l10n-id="spread_odd">
+              <span data-l10n-id="spread_odd_label">双页视图</span>
+            </button>
+            <button id="spreadEven" class="secondaryToolbarButton spreadModeButtons spreadEven" title="加入衔接页使偶数页作为起始页" tabindex="67" data-l10n-id="spread_even">
+              <span data-l10n-id="spread_even_label">书籍视图</span>
+            </button>
+
+            <div class="horizontalToolbarSeparator spreadModeButtons"></div>
+
+            <button id="documentProperties" class="secondaryToolbarButton documentProperties" title="文档属性…" tabindex="68" data-l10n-id="document_properties">
+              <span data-l10n-id="document_properties_label">文档属性…</span>
+            </button>
+          </div>
+        </div>  <!-- secondaryToolbar -->
+
+        <div class="toolbar">
+          <div id="toolbarContainer">
+            <div id="toolbarViewer">
+              <div id="toolbarViewerLeft">
+                <button id="sidebarToggle" class="toolbarButton" title="切换侧栏" tabindex="11" data-l10n-id="toggle_sidebar">
+                  <span data-l10n-id="toggle_sidebar_label">切换侧栏</span>
+                </button>
+                <div class="toolbarButtonSpacer"></div>
+                <button id="viewFind" class="toolbarButton" title="在文档中查找" tabindex="12" data-l10n-id="findbar">
+                  <span data-l10n-id="findbar_label">查找</span>
+                </button>
+                <div class="splitToolbarButton hiddenSmallView">
+                  <button class="toolbarButton pageUp" title="上一页" id="previous" tabindex="13" data-l10n-id="previous" disabled="">
+                    <span data-l10n-id="previous_label">上一页</span>
+                  </button>
+                  <div class="splitToolbarButtonSeparator"></div>
+                  <button class="toolbarButton pageDown" title="下一页" id="next" tabindex="14" data-l10n-id="next">
+                    <span data-l10n-id="next_label">下一页</span>
+                  </button>
+                </div>
+                <input type="number" id="pageNumber" class="toolbarField pageNumber" title="页面" value="1" size="4" min="1" tabindex="15" data-l10n-id="page" max="1">
+                <span id="numPages" class="toolbarLabel">/ 1</span>
+              </div>
+              <div id="toolbarViewerRight">
+                <button id="presentationMode" class="toolbarButton presentationMode hiddenLargeView" title="切换到演示模式" tabindex="31" data-l10n-id="presentation_mode">
+                  <span data-l10n-id="presentation_mode_label">演示模式</span>
+                </button>
+
+                <button id="openFile" class="toolbarButton openFile hiddenLargeView" title="打开文件" tabindex="32" data-l10n-id="open_file">
+                  <span data-l10n-id="open_file_label">打开</span>
+                </button>
+
+                <button id="print" class="toolbarButton print hiddenMediumView" title="打印" tabindex="33" data-l10n-id="print">
+                  <span data-l10n-id="print_label">打印</span>
+                </button>
+
+                <button id="download" class="toolbarButton download hiddenMediumView" title="下载" tabindex="34" data-l10n-id="download" hidden="true">
+                  <span data-l10n-id="download_label">下载</span>
+                </button>
+                <a href="#page=1&amp;zoom=auto,-169,792" id="viewBookmark" class="toolbarButton bookmark hiddenSmallView" title="当前在看的内容（复制或在新窗口中打开）" tabindex="35" data-l10n-id="bookmark" hidden="true">
+                  <span data-l10n-id="bookmark_label">当前在看</span>
+                </a>
+
+                <div class="verticalToolbarSeparator hiddenSmallView"></div>
+
+                <button id="secondaryToolbarToggle" class="toolbarButton" title="工具" tabindex="36" data-l10n-id="tools">
+                  <span data-l10n-id="tools_label">工具</span>
+                </button>
+              </div>
+              <div id="toolbarViewerMiddle">
+                <div class="splitToolbarButton">
+                  <button id="zoomOut" class="toolbarButton zoomOut" title="缩小" tabindex="21" data-l10n-id="zoom_out">
+                    <span data-l10n-id="zoom_out_label">缩小</span>
+                  </button>
+                  <div class="splitToolbarButtonSeparator"></div>
+                  <button id="zoomIn" class="toolbarButton zoomIn" title="放大" tabindex="22" data-l10n-id="zoom_in">
+                    <span data-l10n-id="zoom_in_label">放大</span>
+                   </button>
+                </div>
+                <span id="scaleSelectContainer" class="dropdownToolbarButton">
+                  <select id="scaleSelect" title="缩放" tabindex="23" data-l10n-id="zoom">
+                    <option id="pageAutoOption" title="" value="auto" selected="selected" data-l10n-id="page_scale_auto">自动缩放</option>
+                    <option id="pageActualOption" title="" value="page-actual" data-l10n-id="page_scale_actual">实际大小</option>
+                    <option id="pageFitOption" title="" value="page-fit" data-l10n-id="page_scale_fit">适合页面</option>
+                    <option id="pageWidthOption" title="" value="page-width" data-l10n-id="page_scale_width">适合页宽</option>
+                    <option id="customScaleOption" title="" value="custom" disabled="disabled" hidden="true"></option>
+                    <option title="" value="0.5" data-l10n-id="page_scale_percent" data-l10n-args="{ &quot;scale&quot;: 50 }">50%</option>
+                    <option title="" value="0.75" data-l10n-id="page_scale_percent" data-l10n-args="{ &quot;scale&quot;: 75 }">75%</option>
+                    <option title="" value="1" data-l10n-id="page_scale_percent" data-l10n-args="{ &quot;scale&quot;: 100 }">100%</option>
+                    <option title="" value="1.25" data-l10n-id="page_scale_percent" data-l10n-args="{ &quot;scale&quot;: 125 }">125%</option>
+                    <option title="" value="1.5" data-l10n-id="page_scale_percent" data-l10n-args="{ &quot;scale&quot;: 150 }">150%</option>
+                    <option title="" value="2" data-l10n-id="page_scale_percent" data-l10n-args="{ &quot;scale&quot;: 200 }">200%</option>
+                    <option title="" value="3" data-l10n-id="page_scale_percent" data-l10n-args="{ &quot;scale&quot;: 300 }">300%</option>
+                    <option title="" value="4" data-l10n-id="page_scale_percent" data-l10n-args="{ &quot;scale&quot;: 400 }">400%</option>
+                  </select>
+                </span>
+              </div>
+            </div>
+            <div id="loadingBar" class="hidden" style="width: calc(100% - 17px);">
+              <div class="progress" style="height: 100%; width: 100%;">
+                <div class="glimmer">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <menu type="context" id="viewerContextMenu">
+          <menuitem id="contextFirstPage" label="转到第一页" data-l10n-id="first_page" title="转到第一页"></menuitem>
+          <menuitem id="contextLastPage" label="转到最后一页" data-l10n-id="last_page" title="转到最后一页"></menuitem>
+          <menuitem id="contextPageRotateCw" label="顺时针旋转" data-l10n-id="page_rotate_cw" title="顺时针旋转"></menuitem>
+          <menuitem id="contextPageRotateCcw" label="逆时针旋转" data-l10n-id="page_rotate_ccw" title="逆时针旋转"></menuitem>
+        </menu>
+
+        <div id="viewerContainer" tabindex="0">
+          <div id="viewer" class="pdfViewer">
+            <!-- <div class="page" style="width: 794px; height: 1123px;" data-page-number="1" data-loaded="true"><div style="width: 1019px; height: 1319px;" class="canvasWrapper"> -->
+              <!-- <canvas id="pageCanvas" moz-opaque="" width="794" height="1123" style="width: 794x; height: 1123px;" aria-label="页码 1"></canvas> -->
+          <!-- </div>
+          
+          <div id="pageText" class="textLayer" style="width: 794px; height: 1123px;">
+            <span style="left: 94.5px; top: 153.04px; font-size: 23.3px; font-family: serif; transform: scaleX(1.03931);">
+              PGM files 
+            </span>
+            <span style="left: 94.5px; top: 202.38px; font-size: 20px; font-family: serif; transform: scaleX(1.00017);">
+              The file format known as “plain PGM” , which sta
+            </span>
+            <span style="left: 498.9px; top: 202.38px; font-size: 20px; font-family: serif; transform: scaleX(0.999652);">
+              nds for “Portable Greymap”, is a text-based image 
+            </span>
+            <span style="left: 94.5px; top: 225.38px; font-size: 20px; font-family: serif; transform: scaleX(1.00003);">format for greyscale images.  PGM files normally have</span><span style="left: 536px; top: 225.38px; font-size: 20px; font-family: serif; transform: scaleX(0.999974);"> the extension “.pgm”.  Here is an example of a </span><span style="left: 94.5px; top: 248.38px; font-size: 20px; font-family: serif; transform: scaleX(1.00089);">PGM file: </span><span style="left: 94.5px; top: 293.706px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">P2 </span><span style="left: 94.5px; top: 312.606px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);"># A diagonal line 10 pixels wide and 10 pixels high </span><span style="left: 94.5px; top: 331.506px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">10 10 </span><span style="left: 94.5px; top: 350.406px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">255 </span><span style="left: 94.5px; top: 369.206px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">0 255 255 255 255 255 255 255 255 255  </span><span style="left: 94.5px; top: 388.106px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">255 0 255 255 255 255 255 255 255 255  </span><span style="left: 94.5px; top: 407.006px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">255 255 0 255 255 255 255 255 255 255  </span><span style="left: 94.5px; top: 425.905px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">255 255 255 0 255 255 255 255 255 255  </span><span style="left: 94.5px; top: 444.806px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">255 255 255 255 0 255 255 255 255 255  </span><span style="left: 94.5px; top: 463.606px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">255 255 255 255 255 0 255 255 255 255  </span><span style="left: 94.5px; top: 482.506px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">255 255 255 255 255 255 0 255 255 255  </span><span style="left: 94.5px; top: 501.406px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">255 255 255 255 255 255 255 0 255 255  </span><span style="left: 94.5px; top: 520.306px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">255 255 255 255 255 255 255 255 0 255  </span><span style="left: 94.5px; top: 539.206px; font-size: 16.7px; font-family: monospace; transform: scaleX(0.998165);">255 255 255 255 255 255 255 255 255 0 </span><span style="left: 94.5px; top: 585.58px; font-size: 20px; font-family: serif; transform: scaleX(1.00022);">An image is represented by a greyscale value for each </span><span style="left: 531px; top: 585.58px; font-size: 20px; font-family: serif; transform: scaleX(0.972155);">pixel</span><span style="left: 569.9px; top: 585.58px; font-size: 20px; font-family: serif; transform: scaleX(0.9986);"> or “dot” on the screen.  The values range </span><span style="left: 94.5px; top: 608.58px; font-size: 20px; font-family: serif; transform: scaleX(0.999898);">from 0 for black up to some fixed </span><span style="left: 368.9px; top: 608.58px; font-size: 20px; font-family: serif; transform: scaleX(0.99967);">maximum for white (255 is a common c</span><span style="left: 690.4px; top: 608.58px; font-size: 20px; font-family: serif; transform: scaleX(0.998761);">hoice).  The file is organized </span><span style="left: 94.5px; top: 631.58px; font-size: 20px; font-family: serif; transform: scaleX(0.999212);">as follows: </span><span style="left: 124.5px; top: 677.58px; font-size: 20px; font-family: serif; transform: scaleX(1);">1.</span><span style="left: 153.6px; top: 677.58px; font-size: 20px; font-family: serif; transform: scaleX(0.999976);">The string “P2” followed by whitespace. </span><span style="left: 124.5px; top: 700.58px; font-size: 20px; font-family: serif; transform: scaleX(1);">2.</span><span style="left: 153.6px; top: 700.58px; font-size: 20px; font-family: serif; transform: scaleX(0.999795);">The width followed by whitespace. </span><span style="left: 124.5px; top: 723.58px; font-size: 20px; font-family: serif; transform: scaleX(1);">3.</span><span style="left: 153.6px; top: 723.58px; font-size: 20px; font-family: serif; transform: scaleX(0.99965);">The height followed by whitespace. </span><span style="left: 124.5px; top: 746.58px; font-size: 20px; font-family: serif; transform: scaleX(1);">4.</span><span style="left: 153.6px; top: 746.58px; font-size: 20px; font-family: serif; transform: scaleX(1.00029);">The maximum (white) greyscale value, followed by whitespace. </span><span style="left: 124.5px; top: 769.58px; font-size: 20px; font-family: serif; transform: scaleX(1);">5.</span><span style="left: 153.6px; top: 769.58px; font-size: 20px; font-family: serif; transform: scaleX(1.00065);">Lines containing </span><span style="left: 292.5px; top: 769.58px; font-size: 20px; font-family: serif; transform: scaleX(0.977388);">width</span><span style="left: 337px; top: 769.58px; font-size: 20px; font-family: serif; transform: scaleX(0.9967);"> x </span><span style="left: 356.9px; top: 769.58px; font-size: 20px; font-family: serif; transform: scaleX(1.00177);">height</span><span style="left: 407px; top: 769.58px; font-size: 20px; font-family: serif; transform: scaleX(1.00043);"> numbers representing the pixel values, starting with the first </span><span style="left: 154.5px; top: 792.58px; font-size: 20px; font-family: serif; transform: scaleX(0.999391);">row, separated by whitespace. </span><span style="left: 94.5px; top: 838.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999966);">Note that the pixel values for a given row are not</span><span style="left: 486.7px; top: 838.48px; font-size: 20px; font-family: serif; transform: scaleX(0.9997);"> required to be on a sing</span><span style="left: 679.9px; top: 838.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00011);">le line, and the spec </span><span style="left: 94.5px; top: 861.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00005);">recommends a maximum of 70 characters per line.   In addition, </span><span style="left: 612.1px; top: 861.48px; font-size: 20px; font-family: serif; transform: scaleX(0.972993);">comments</span><span style="left: 692.1px; top: 861.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999063);"> may appear among items 2, </span><span style="left: 94.5px; top: 884.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00017);">3, or 4, where any line starting w</span><span style="left: 358.3px; top: 884.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999737);">ith a pound sign (“#”) is a comment. </span><span style="left: 94.5px; top: 930.68px; font-size: 20px; font-family: serif; transform: scaleX(1.03028);">Viewing PGM files </span><span style="left: 94.5px; top: 976.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999302);">Images are no fun unless you can see them.  The si</span><span style="left: 500.8px; top: 976.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999992);">mplest way to view a PGM image file is to </span><span style="left: 94.5px; top: 999.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00042);">download the free image viewer </span><span style="left: 357.2px; top: 999.48px; font-size: 20px; font-family: serif; transform: scaleX(1.07095);">Irfanview</span><span style="left: 440.3px; top: 999.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00247);"> from </span><span style="left: 489.3px; top: 999.48px; font-size: 20px; font-family: serif; transform: scaleX(0.998785);">http://www.irfanview.com/</span><span style="left: 704.3px; top: 999.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00127);">.  By default, the viewer </span><span style="left: 94.5px; top: 1022.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00033);">will attempt to “smooth out” the pixels when renderi</span><span style="left: 515.6px; top: 1022.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999794);">ng the image, so to see the individual pixels more </span><span style="left: 94.5px; top: 1045.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00016);">clearly, go to Edit --&gt; Show Paint dialog. </span><span style="left: 94.5px; top: 1091.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00031);">You can also use Irfanview to crea</span><span style="left: 370.2px; top: 1091.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999753);">te PGM files from existing images. </span><span style="left: 656.2px; top: 1091.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00024);"> Open an image using Irfanview, </span><span style="left: 94.5px; top: 1114.48px; font-size: 20px; font-family: serif; transform: scaleX(0.997614);">select “Save As”, and select the type PGM from th</span><span style="left: 498.9px; top: 1114.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999317);">e “Save as type” drop-down </span><span style="left: 728.3px; top: 1114.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00061);">menu at the bottom.  In </span><span style="left: 94.5px; top: 1137.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999581);">the options dialog, be sure to click </span><span style="left: 374.4px; top: 1137.48px; font-size: 20px; font-family: serif; transform: scaleX(1.0007);">the radio button for “Ascii </span><span style="left: 590.4px; top: 1137.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999567);">encoding” in order to get a text file.  (If </span><span style="left: 94.5px; top: 1160.48px; font-size: 20px; font-family: serif; transform: scaleX(1.00051);">you don’t see the options dialog, chec</span><span style="left: 396.8px; top: 1160.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999912);">k the box “Show options dialog” at</span><span style="left: 677.9px; top: 1160.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999887);"> bottom.)  See the screenshot </span><span style="left: 94.5px; top: 1183.48px; font-size: 20px; font-family: serif; transform: scaleX(0.999406);">below: </span><div class="endOfContent"></div></div></div><div class="page" style="width: 1019px; height: 1319px;" data-page-number="2" data-loaded="true"><div style="width: 1019px; height: 1319px;" class="canvasWrapper"><canvas moz-opaque="" width="1020" height="1320" style="width: 1020px; height: 1320px;" aria-label="页码 2"></canvas></div><div class="textLayer" style="width: 1019px; height: 1319px;"><div class="endOfContent"></div></div></di
+            v></div> -->
+           
+
+        </div>
+
+        <div id="errorWrapper" hidden="true">
+          <div id="errorMessageLeft">
+            <span id="errorMessage"></span>
+            <button id="errorShowMore" data-l10n-id="error_more_info">更多信息</button>
+            <button id="errorShowLess" data-l10n-id="error_less_info" hidden="true">更少信息</button>
+          </div>
+          <div id="errorMessageRight">
+            <button id="errorClose" data-l10n-id="error_close">关闭</button>
+          </div>
+          <div class="clearBoth"></div>
+          <textarea id="errorMoreInfo" readonly="readonly" hidden="true"></textarea>
+        </div>
+      </div> <!-- mainContainer -->
+
+      <div id="overlayContainer" class="hidden">
+        <div id="passwordOverlay" class="container hidden">
+          <div class="dialog">
+            <div class="row">
+              <p id="passwordText" data-l10n-id="password_label">输入密码以打开此 PDF 文件。</p>
+            </div>
+            <div class="row">
+              <input type="password" id="password" class="toolbarField">
+            </div>
+            <div class="buttonRow">
+              <button id="passwordCancel" class="overlayButton"><span data-l10n-id="password_cancel">取消</span></button>
+              <button id="passwordSubmit" class="overlayButton"><span data-l10n-id="password_ok">确定</span></button>
+            </div>
+          </div>
+        </div>
+        <div id="documentPropertiesOverlay" class="container hidden">
+          <div class="dialog">
+            <div class="row">
+              <span data-l10n-id="document_properties_file_name">文件名:</span> <p id="fileNameField">-</p>
+            </div>
+            <div class="row">
+              <span data-l10n-id="document_properties_file_size">文件大小:</span> <p id="fileSizeField">-</p>
+            </div>
+            <div class="separator"></div>
+            <div class="row">
+              <span data-l10n-id="document_properties_title">标题:</span> <p id="titleField">-</p>
+            </div>
+            <div class="row">
+              <span data-l10n-id="document_properties_author">作者:</span> <p id="authorField">-</p>
+            </div>
+            <div class="row">
+              <span data-l10n-id="document_properties_subject">主题:</span> <p id="subjectField">-</p>
+            </div>
+            <div class="row">
+              <span data-l10n-id="document_properties_keywords">关键词:</span> <p id="keywordsField">-</p>
+            </div>
+            <div class="row">
+              <span data-l10n-id="document_properties_creation_date">创建日期:</span> <p id="creationDateField">-</p>
+            </div>
+            <div class="row">
+              <span data-l10n-id="document_properties_modification_date">修改日期:</span> <p id="modificationDateField">-</p>
+            </div>
+            <div class="row">
+              <span data-l10n-id="document_properties_creator">创建者:</span> <p id="creatorField">-</p>
+            </div>
+            <div class="separator"></div>
+            <div class="row">
+              <span data-l10n-id="document_properties_producer">PDF 生成器：</span> <p id="producerField">-</p>
+            </div>
+            <div class="row">
+              <span data-l10n-id="document_properties_version">PDF 版本:</span> <p id="versionField">-</p>
+            </div>
+            <div class="row">
+              <span data-l10n-id="document_properties_page_count">页数:</span> <p id="pageCountField">-</p>
+            </div>
+            <div class="row">
+              <span data-l10n-id="document_properties_page_size">页面大小：</span> <p id="pageSizeField">-</p>
+            </div>
+            <div class="separator"></div>
+            <div class="row">
+              <span data-l10n-id="document_properties_linearized">快速 Web 视图：</span> <p id="linearizedField">-</p>
+            </div>
+            <div class="buttonRow">
+              <button id="documentPropertiesClose" class="overlayButton"><span data-l10n-id="document_properties_close">关闭</span></button>
+            </div>
+          </div>
+        </div>
+<!--#if !MOZCENTRAL-->
+        <div id="printServiceOverlay" class="container hidden">
+          <div class="dialog">
+            <div class="row">
+              <span data-l10n-id="print_progress_message">正在准备打印文档…</span>
+            </div>
+            <div class="row">
+              <progress value="0" max="100"></progress>
+              <span data-l10n-id="print_progress_percent" data-l10n-args="{ &quot;progress&quot;: 0 }" class="relative-progress">0%</span>
+            </div>
+            <div class="buttonRow">
+              <button id="printCancel" class="overlayButton"><span data-l10n-id="print_progress_close">取消</span></button>
+            </div>
+          </div>
+        </div>
+<!--#endif-->
+<!--#if CHROME-->
+<!--#include viewer-snippet-chrome-overlays.html-->
+<!--#endif-->
+      </div>  <!-- overlayContainer -->
+
+    </div> <!-- outerContainer -->
+    <div id="printContainer"></div>
+  
+
+<input id="fileInput" class="fileInput" type="file"></body>
+
+<script src="renderer.js"></script>
+</html>

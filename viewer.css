@@ -266,6 +266,7 @@ html[dir='rtl'] #toolbarContainer, .findbar, .secondaryToolbar {
 }
 
 #toolbarViewer {
+  width:100%;
   height: 32px;
 }
 
@@ -1881,6 +1882,8 @@ html[dir='rtl'] #documentPropertiesOverlay .row > * {
     display: none;
   }
 }
+
+img {height:auto; width:auto;}
 
 
 

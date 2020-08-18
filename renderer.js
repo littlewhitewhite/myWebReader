@@ -123,7 +123,7 @@ class PDFFind {
         }
         this.findField.select();
         this.findField.focus();
-        this.adjustWidth();
+        //this.adjustWidth();
     }
 
     close() 
@@ -246,6 +246,7 @@ class PDFFind {
                 let currentDivContent = this.textDivs[i].textContent;
                 if (!this.caseSensitive.checked) {
                     currentDivContent = currentDivContent.toLowerCase();
+					query = query.toLowerCase();
                 }
                 // each span element may have more than one match query, so we use while loop to iterate this span
                 while ((tmp = currentDivContent.indexOf(query, tmp + queryLen)) != -1) {
@@ -343,7 +344,7 @@ class PDFFind {
         console.log("matchesCountMsg", matchesCountMsg);
         findResultsCount.textContent = matchesCountMsg;
         this.findResultsCount.classList.toggle("hidden", !total);
-        this.adjustWidth();
+        //this.adjustWidth();
     }
 
     // adjust the width and height whenever findBar is changed
@@ -594,7 +595,7 @@ class SinglePageMode {
 
 function initSinglePageMode()
 {
-	let config = { singlePageButton : document.getElementById("zoomOut")};
+	let config = { singlePageButton : document.getElementById("openFile")};
 	let singPageObj = new SinglePageMode(config);
 }
 
@@ -618,6 +619,79 @@ function setPrintButton(){
         window.print();
     });
 }
+
+let curScaleFactorIdx = 2;		// 100%
+// zoomIn or zoomOut 
+function zoomScale(scale)
+{
+	let canvas = document.querySelectorAll("#viewer .page .canvasWrapper canvas");
+	let textLayers = document.querySelectorAll("#viewer .page .textLayer");
+	let selectScale = document.getElementById("selectdScale");
+	let scaleFactors = [50, 75, 100, 125, 150, 175, 200];
+	let isZoomIn = false;
+	
+	if(this.id == "zoomIn") {
+		if(curScaleFactorIdx < scaleFactors.length - 1) {
+			isZoomIn = true;
+			scale = scaleFactors[curScaleFactorIdx + 1];
+		}
+		else 
+			return;
+	} else if(this.id == "zoomOut") {
+		if(curScaleFactorIdx > 0) {
+			scale = scaleFactors[curScaleFactorIdx - 1];
+		}
+		else 
+			return;
+	}
+	
+	// zoom canvas layer
+	for(let item of canvas) {
+		item.style.width = item.parentNode.style.width =  item.parentNode.parentNode.style.width = 
+			parseInt(parseInt(item.style.width) * scale / scaleFactors[curScaleFactorIdx]) + "px";
+		item.style.height = item.parentNode.style.height =  item.parentNode.parentNode.style.height = 
+			parseInt(parseInt(item.style.height) * scale / scaleFactors[curScaleFactorIdx]) + "px";
+	}
+	// zoom textLayer
+	for(let item of textLayers) {
+		item.style.width = parseInt(parseInt(item.style.width) * scale / scaleFactors[curScaleFactorIdx]) + "px";
+		item.style.height = parseInt(parseInt(item.style.height) * scale / scaleFactors[curScaleFactorIdx]) + "px";
+		for(let span of item.childNodes) {
+			span.style.left = parseFloat(parseFloat(span.style.left) * scale / scaleFactors[curScaleFactorIdx]) + "px";
+			span.style.top = parseFloat(parseFloat(span.style.top) * scale / scaleFactors[curScaleFactorIdx]) + "px";
+			span.style.fontSize = parseFloat(parseFloat(span.style.fontSize) * scale / scaleFactors[curScaleFactorIdx]) + "px";
+		}
+	}
+	selectScale.text = scale + "%";
+	
+	if(isZoomIn) {
+		curScaleFactorIdx++;
+	} else {
+		curScaleFactorIdx--;
+	}
+}
+
+// zoomIn just 125% in case of blurring of pictures
+// change 
+//	style:{
+//	div .page, 
+//		canvas
+//		.canvasWrapper,
+//		.textLayer,
+//		[style]
+//		.textLayer span
+//		}
+// change div canvas 
+function initZoom() {
+	const zoomInButton = document.getElementById("zoomIn");
+	const zoomOutButton = document.getElementById("zoomOut");
+	//const zoomSelect = document.getElementById("scaleSelect");
+	
+	zoomInButton.addEventListener("click", zoomScale );
+	zoomOutButton.addEventListener("click", zoomScale);
+	//zoomSelect.addEventListener("change", zoomScale);
+}
+
 
 
 function toggleFullScreen() {
@@ -686,8 +760,7 @@ function setFullScreenButton(){
 function hideNotUsedButton() {
     const needHiddens = [
         // "print",
-        "download",
-        "openFile",
+        //"openFile",
         // "presentationMode",
         "viewBookmark",
         "secondaryToolbarToggle",
@@ -695,7 +768,7 @@ function hideNotUsedButton() {
         "viewAttachments",
         "findbarOptionsTwoContainer",
         "findbarOptionsOneContainer",
-        "scaleSelectContainer"
+        //"scaleSelectContainer"
 
     ];
     for (const element of needHiddens) {
@@ -718,6 +791,7 @@ function initViewer() {
     setFullScreenButton();
     initFind();
 	initSinglePageMode();
+	initZoom();
     // let netPageButton = document.getElementById("next");
     // netPageButton.addEventListener("click", nextPage);
 }
@@ -907,17 +981,23 @@ function drawTextLayer(page, pageImg, pagesJsonObject, ctx ){
         spanObject.style.transform = "scaleX(1)";
         var chars = "";
         var charsObject = textLine.chars;
-        for (let k = 0; k < charsObject.length; k++) {
+        for (var k = 0; k < charsObject.length; k++) {
             chars += String.fromCharCode(charsObject[k]);
+			if(k == 5)console.log(String.fromCharCode(charsObject[5]));
+			if(k == 6)console.log(String.fromCharCode(charsObject[6]));
         }
+		if(k == 7) console.log(chars);
         ctx.font = multiBy(textLine.charWidth) + "px serif";
         var textWidth = ctx.measureText(chars).width;
+		//console.log("textWidth : " + textWidth);
         // var xLefts = textLine.x_lefts;
         // let xMin = textLine.xMin;
         // console.log("xLefts:", xLefts);
-        var canvasWidth =  textLine.xMax - textLine.xMin + textLine.charWidth;
+        //var canvasWidth =  textLine.xMax - textLine.xMin + textLine.charWidth;
+		var canvasWidth =  textLine.xMax - textLine.xMin;
         canvasWidth = multiBy(canvasWidth);
-        // console.log("textWidth:", textWidth, "canvasWidth:", canvasWidth);
+		textLine.charWidth = multiBy(textLine.charWidth);
+        console.log("textWidth:", textWidth, "    canvasWidth:", canvasWidth, "fontsize", spanObject.style.fontSize, "charWidth", textLine.charWidth);
         var scaleX = canvasWidth / textWidth;
         // console.log("scaleX:", scaleX);
         spanObject.style.transform = "scaleX(" + scaleX + ")";
@@ -933,8 +1013,7 @@ function drawImage(pageNumber, pageImageUrl, pageAnnotationUrl, jsonText){
     pageImg.onload = function () {
         let page = document.getElementById('zpage-number-' + pageNumber);
         page.style.width = pageImg.width + "px";
-        page.style.height = pageImg.height + "px";
-
+        page.style.height = pageImg.height + "px";		
         let pageCanvasWrapper = document.createElement("div");
         pageCanvasWrapper.className = "canvasWrapper";
         pageCanvasWrapper.style.width = pageImg.width + "px";
@@ -964,7 +1043,9 @@ function drawImage(pageNumber, pageImageUrl, pageAnnotationUrl, jsonText){
         g_zpages[pageNumber - 1].height = pageImg.height;
         // console.log("pageHeight:", height);
         ctx.scale(1, -1);
-        ctx.drawImage(this, x, -height - y, width, height)
+		//ctx.scale(1, 1);
+        //ctx.drawImage(this, x, y, width, height);
+		ctx.drawImage(this, x, -height - y, width, height)
         drawTextLayer(page, pageImg, pagesJsonObject, ctx);
         ctx.restore();
         // page.appendChild(pageCanvas);
@@ -1079,7 +1160,6 @@ function setSideBar(){
 
 }
 
-
 function updatePageButton(){
     let previouseButton = document.getElementById("previous");
     let nextButton = document.getElementById("next");
@@ -1134,7 +1214,6 @@ function initPageNumber(){
     let numPagesElement = document.getElementById("numPages");
     numPagesElement.textContent = "/" + g_zpages.length;
 }
-
 
 function setPageNextPreviouseButton(){
     let previouseButton = document.getElementById("previous");
@@ -1229,44 +1308,6 @@ function setPageNextPreviouseButton(){
 //     }
 // }
 
-// function imageOnLoad() {
-//     let pageCanvasWrapper = document.createElement("div");
-//     pageCanvasWrapper.className = "canvasWrapper";
-//     pageCanvasWrapper.style.width = this.width + "px";
-//     pageCanvasWrapper.style.height = this.height + "px";
-//     this.page.style.width = this.width + "px";
-//     this.page.style.height = this.height + "px";
-//     this.page.appendChild(pageCanvasWrapper);
 
-//     let pageCanvas = document.createElement("canvas");
-//     pageCanvas.width = this.width;
-//     pageCanvas.height = this.height;
-//     pageCanvas.style.width = this.width + "px";
-//     pageCanvas.style.height = this.height + "px";
-//     pageCanvas.setAttribute("aria-label", "页码 " + this.pageNumber);
-
-//     pageCanvasWrapper.appendChild(pageCanvas);
-//     // ctx.rotate(60* Math.PI/180);
-//     let ctx = pageCanvas.getContext("2d");
-//     // console.log("ctx:", ctx);
-//     ctx.save();
-//     // this.style.transform = 'rotate('+current+'deg)'
-//     // var canvasWidth = pageCanvas.width;
-//     // console.log("canvasWidth:", canvasWidth);
-//     var width = this.width;
-//     // console.log("pageWidth:", width);
-//     var x = 0;
-//     var y = 0;
-//     var height = this.height;
-//     // console.log("pageHeight:", height);
-//     // ctx.scale(1, -1);
-//     ctx.scale(0.12, -0.12);
-//     ctx.drawImage(this, x, -height - y, width, height);
-//     drawTextLayer(this.zDocumentObj, this.pageNumber , this.page, this, ctx);
-//     ctx.restore();
-// }
-
-
-// document.addEventListener("onload", drawPage);
 
 

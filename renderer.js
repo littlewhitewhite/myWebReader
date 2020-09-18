@@ -2,6 +2,7 @@
 import {multiBy} from "./util.js";
 import {drawAnnotation} from "./annotation.js";
 
+export {zrun}
 
 /*********************************************************************************************** 
  * PDFFind: public method: @1:
@@ -64,13 +65,11 @@ class PDFFind {
         this.bar.addEventListener("keydown", e => {
             switch (e.keyCode) {
                 case 13: // Enter
-				console.log(e.target.id + 13);
                     if (e.target === this.findField) {
                         this.getSelected(!e.shiftKey);
                     }
                     break;
                 case 27: // Escape
-				console.log(e.target.id + 27);
                     this.close();
                     break;
             }
@@ -84,34 +83,28 @@ class PDFFind {
 		});	
 		
         this.findPreviousButton.addEventListener("click", () => {
-            console.log("find previous");
             this.getSelected(false);
         });
 
         this.findNextButton.addEventListener("click", () => {
-            console.log("find next");
             this.getSelected(true);
         });
 		// if highlightAll is enabled in html, then attach event.
 		if(this.highlightAll) {
 			this.highlightAll.addEventListener("click", () => {
-				console.log("highlightAll is " + this.highlightAll.checked);
 				this.updateHighlightMatches(this.findField.value, this.highlightAll.checked);
 			});
 		}
         this.caseSensitive.addEventListener("click", () => {
-            console.log("caseSensitive");
             this.findInFile();
         });
 
 		// if entireWord is enabled in html, then attach event.
 		if(this.entireWord) {
 			this.entireWord.addEventListener("click", () => {
-				console.log("entire word");
 				this.findInFile();
 			});
 		}
-
     }
 
     open() 
@@ -197,8 +190,8 @@ class PDFFind {
 	 *						  3: highlight(split) all the matches query
 	 *						  4: count totalMatches according to this.matches[]
 	 * parameter: 
-	 *			@1 query: the word to find
-	 *			@2 whether or not highlight word
+	 *			@query: the word to find
+	 *			@isHighlightMatches: whether or not highlight word
 	****************************************************************************************************************/
     updateHighlightMatches(query, isHighlightMatches)
 	{
@@ -290,15 +283,6 @@ class PDFFind {
 						continue;
 					}
 					this.appendTextToDiv(begin, currentMatchContent, toOffset);
-					
-		/*			
-					if(i < ii && this.matches[i + 1].spanIdx == 0) {
-						this.appendTextToDiv(begin, currentMatchContent, toOffset);	// create the latter text, only create once for a span element
-					}
-					if(i == ii) {
-						this.appendTextToDiv(begin, currentMatchContent, toOffset);	// create the latter text, only create once for a span element
-					}
-					*/
                 }
             }
         }
@@ -323,11 +307,9 @@ class PDFFind {
     // update matchResult bar
     updateResultsCounts(current = 0, total = 0)
 	{
-        console.log("UIResultsCount start to updated.");
         if (!this.findResultsCount) {
             return; // No UI control is provided.
         }
-        console.log("UIResultsCount start to updated2.");
         const limit = MATCHES_COUNT_LIMIT;
         let matchesCountMsg = "";
 
@@ -341,7 +323,6 @@ class PDFFind {
             // 超过1000项匹配
             matchesCountMsg = "超过1000项匹配";
         }
-        console.log("matchesCountMsg", matchesCountMsg);
         findResultsCount.textContent = matchesCountMsg;
         this.findResultsCount.classList.toggle("hidden", !total);
         //this.adjustWidth();
@@ -479,14 +460,10 @@ class PDFFind {
 	 * Private Method:
 	 ******************************************************************************************************/
     handleSelected(selectedPos, operate) {
-        console.log("selectedPos: " + selectedPos + "    operate: " + operate);
-
         let className = (this.highLighted) ? "selected" : "highlight selected";
 
         // get the pageNum and span element of currentMatch item 			
         let pageInfo = this.getPageInfoBySelectedPos(selectedPos);
-        console.log("pageInfo.highlightSpanObj:  " + pageInfo.highlightSpanObj);
-        console.log(operate);
         if (operate == "remove") {
             pageInfo.highlightSpanObj.classList.remove(className);
         } else if (operate == "add") {
@@ -566,7 +543,6 @@ class SinglePageMode {
 	{
         if (!this.opened) {
             this.opened = true;
-			console.log("singlePageMode open");
 			g_singlePageMode = true;
 			
 			openSinglePageMode();
@@ -579,7 +555,6 @@ class SinglePageMode {
             return;
         }
         this.opened = false;
-		console.log("singlePageMode close");
 		g_singlePageMode = false;
     }
 
@@ -615,7 +590,6 @@ let g_zpages = [];
 function setPrintButton(){
 	const printFileButton = document.getElementById("print");
     printFileButton.addEventListener('click', function (event) {
-        console.log("print is executing");
         window.print();
     });
 }
@@ -672,16 +646,6 @@ function zoomScale(scale)
 }
 
 // zoomIn just 125% in case of blurring of pictures
-// change 
-//	style:{
-//	div .page, 
-//		canvas
-//		.canvasWrapper,
-//		.textLayer,
-//		[style]
-//		.textLayer span
-//		}
-// change div canvas 
 function initZoom() {
 	const zoomInButton = document.getElementById("zoomIn");
 	const zoomOutButton = document.getElementById("zoomOut");
@@ -709,54 +673,6 @@ function setFullScreenButton(){
     presentationModeButton.addEventListener('click', toggleFullScreen);
 }
 
-// function drawText() {
-//     let requestURL = 'data/page.json';
-//     let request = new XMLHttpRequest();
-//     request.open('GET', requestURL);
-//     request.responseType = 'text';
-//     request.send();
-//     request.onload = function () {
-//         let jsonText = request.response;
-//         // console.log("jsonTextObject", jsonText);
-//         let jsonTextObject = JSON.parse(jsonText);
-//         console.log("line_count:", jsonTextObject.line_count);
-//         let pageSpan = document.getElementById("pageText");
-//         pageSpan.innerHTML = "";
-//         let textLines = jsonTextObject.text_lines;
-//         var c = document.getElementById("pageCanvas");
-//         var ctx = c.getContext("2d");
-
-//         for (let i = 0; i < textLines.length; i++) {
-//             console.log("i:", i);
-//             let textLine = textLines[i];
-//             let spanObject = document.createElement("span");
-//             console.log("xleft:", multiBy(textLine.x_lefts[0]));
-//             spanObject.style.left = multiBy(textLine.x_lefts[0]) + "px";
-//             spanObject.style.top = multiBy(textLine.y_max) + "px";
-//             spanObject.style.fontSize = multiBy(textLine.char_width) + "px";
-//             spanObject.style.fontFamily = "serif";
-//             spanObject.style.transform = "scaleX(1)";
-//             var chars = "";
-//             var charsObject = textLine.text_line_text;
-//             for (let j = 0; j < charsObject.length; j++) {
-//                 chars += String.fromCharCode(charsObject[j]);
-//             }
-//             ctx.font = multiBy(textLine.char_width) + "px serif";
-//             var textWidth = ctx.measureText(chars).width;
-//             var xLefts = textLine.x_lefts;
-//             // console.log("xLefts:", xLefts);
-//             var canvasWidth = xLefts[xLefts.length - 1] - xLefts[0] + textLine.char_width;
-//             canvasWidth = multiBy(canvasWidth);
-//             console.log("textWidth:", textWidth, "canvasWidth:", canvasWidth);
-//             var scaleX = canvasWidth / textWidth;
-//             console.log("scaleX:", scaleX);
-//             spanObject.style.transform = "scaleX(" + scaleX + ")";
-//             spanObject.innerText = chars;
-//             pageSpan.appendChild(spanObject);
-//         }
-//     };
-// }
-
 function hideNotUsedButton() {
     const needHiddens = [
         // "print",
@@ -776,28 +692,16 @@ function hideNotUsedButton() {
     }
 }
 
-// function nextPage() {
-//     let a = document.createElement("a");
-//     a.href = "#page=3";
-//     a.setAttribute("data-page-number", 3);
-//     a.click();
-// }
-
 function initViewer() {
-    console.log("initViewer");
-    // hideNotUsedButton();
     setSideBar();
     setPrintButton();
     setFullScreenButton();
     initFind();
 	initSinglePageMode();
 	initZoom();
-    // let netPageButton = document.getElementById("next");
-    // netPageButton.addEventListener("click", nextPage);
 }
 
 function createOutlineItemElement(pageNumber, titleText, hasChildren){
-//    console.log("hasChildren:", hasChildren);
     let outlineElement = document.createElement("div");
    
     if(hasChildren){
@@ -818,14 +722,10 @@ function createOutlineItemElement(pageNumber, titleText, hasChildren){
 }
 
 function getCatalogTitleText(titleJSON){
-    // console.log("titleJSON:", titleJSON);
-    // console.log("title length:", titleJSON.length);
     let titleText = "";
     for(let i = 0; i < titleJSON.length; i++){
-        // console.log("title text:", String.fromCharCode(titleJSON.titleText[i]));
         titleText += String.fromCharCode(titleJSON.titleText[i]);
     }
-    // console.log("titleText:", titleText);
     return titleText;
 }
 
@@ -833,19 +733,16 @@ function getCatalogTitleText(titleJSON){
 
 function parseOutlineJSON(outlineJSONObject){
     let titleText = getCatalogTitleText(outlineJSONObject.title);
-    console.log("pageNumber:", outlineJSONObject.destPageNumber);
     let pageNumber = outlineJSONObject.destPageNumber;
     let outlineElement = createOutlineItemElement(pageNumber, titleText, outlineJSONObject.children);
     if(outlineJSONObject.children){
         let childElement = parseOutlineJSON(outlineJSONObject.children);
-        // outlineElement.insertBefore()
         outlineElement.appendChild(childElement);
     }
 
     let siblings = outlineJSONObject.siblings;
     for(let i = 0; i < siblings.length; i ++)
     {
-        console.log("siblings[i].destPageNumber:", siblings[i].destPageNumber);
         let siblingElement = createOutlineItemElement(siblings[i].destPageNumber,  getCatalogTitleText(siblings[i].title), 
             siblings[i].children);
         if(siblings[i].children){
@@ -858,67 +755,25 @@ function parseOutlineJSON(outlineJSONObject){
 }
 
 function drawOutline(outlineJSONString){
-    // console.log(outlineJSONString);
     let outlineJSONObject = JSON.parse(outlineJSONString);
     let outlineElment = parseOutlineJSON(outlineJSONObject);
     let outlineViewElement = document.getElementById("outlineView");
     
     outlineViewElement.appendChild(outlineElment);
-    console.log(outlineViewElement);
 }
 
 function initOutline(outlineJSONUrl){
     // let requestURL = pageTextJsonUrl;
-    console.log("initOutline start");
     let request = new XMLHttpRequest();
     request.open('GET', outlineJSONUrl);
     request.responseType = 'text'; 
     request.send();
     request.onload = function () {
-
-        // console.log("pageNumber:", pageNumber);
         drawOutline(request.response);
     }
-    console.log("initOutline end");
 }
 
-
-	// bookInfo 
-	let bookInfo = {
-		pageUrlArray : [
-        {
-            pageNumber: 1,
-            pageImageUrl: 'data/1.jpg',
-            pageTextJsonUrl: 'data/1.json'
-        },
-        {
-            pageNumber: 2,
-            pageImageUrl: 'data/2.jpg',
-            pageTextJsonUrl: 'data/2.json'
-            // pageAnnotationUrl: 'data/2-notes.xml'
-        },
-        {
-            pageNumber: 3,
-            pageImageUrl: 'data/3.jpg',
-            pageTextJsonUrl: 'data/3.json'
-        },
-        {
-            pageNumber: 4,
-            pageImageUrl: 'data/4.jpg',
-            pageTextJsonUrl: 'data/4.json'
-        },
-        {
-            pageNumber: 5,
-            pageImageUrl: 'data/5.jpg',
-            pageTextJsonUrl: 'data/5.json'
-        }
-		],
-		outlineURL : "data/mupdf-catalog.json"
-	};
-
 function drawBook(bookInfo){
-	console.log("drawBook start");
-
     initOutline(bookInfo.outlineURL);
     
     for(let i = 0; i < bookInfo.pageUrlArray.length; i ++){
@@ -930,15 +785,12 @@ function drawBook(bookInfo){
     setScrollEvent();
     initPageNumber();
     setPageNextPreviouseButton();
-    console.log("drawBook end");
 }
 
-function zrun(){
+function zrun(bookInfo){
     initViewer();
     drawBook(bookInfo);
 }
-
-zrun();
 
 function createPage(pageNumber){
     let viewer = document.getElementById("viewer");
@@ -948,7 +800,6 @@ function createPage(pageNumber){
     page.setAttribute("id", 'zpage-number-' + pageNumber);
     page.style.width = "800px";
     page.style.height = "1000px";
-    // console.log("page:", page);
     let zpage = new ZPage();
     zpage.pageNumber = pageNumber;
     zpage.width = 0;
@@ -970,10 +821,8 @@ function drawTextLayer(page, pageImg, pagesJsonObject, ctx ){
     // var c = document.getElementById("pageCanvas");
     // var ctx = c.getContext("2d");
     for (let j = 0; j < textLines.length; j++) {
-        // console.log("j:", j);
         let textLine = textLines[j];
         let spanObject = document.createElement("span");
-        // console.log("xleft:", multiBy(textLine.xMin));
         spanObject.style.left = multiBy(textLine.xMin) + "px";
         spanObject.style.top = multiBy(textLine.yMax) + "px";
         spanObject.style.fontSize = multiBy(textLine.charWidth) + "px";
@@ -981,25 +830,17 @@ function drawTextLayer(page, pageImg, pagesJsonObject, ctx ){
         spanObject.style.transform = "scaleX(1)";
         var chars = "";
         var charsObject = textLine.chars;
+
         for (var k = 0; k < charsObject.length; k++) {
             chars += String.fromCharCode(charsObject[k]);
-			if(k == 5)console.log(String.fromCharCode(charsObject[5]));
-			if(k == 6)console.log(String.fromCharCode(charsObject[6]));
         }
-		if(k == 7) console.log(chars);
+
         ctx.font = multiBy(textLine.charWidth) + "px serif";
         var textWidth = ctx.measureText(chars).width;
-		//console.log("textWidth : " + textWidth);
-        // var xLefts = textLine.x_lefts;
-        // let xMin = textLine.xMin;
-        // console.log("xLefts:", xLefts);
-        //var canvasWidth =  textLine.xMax - textLine.xMin + textLine.charWidth;
 		var canvasWidth =  textLine.xMax - textLine.xMin;
         canvasWidth = multiBy(canvasWidth);
 		textLine.charWidth = multiBy(textLine.charWidth);
-        console.log("textWidth:", textWidth, "    canvasWidth:", canvasWidth, "fontsize", spanObject.style.fontSize, "charWidth", textLine.charWidth);
         var scaleX = canvasWidth / textWidth;
-        // console.log("scaleX:", scaleX);
         spanObject.style.transform = "scaleX(" + scaleX + ")";
         spanObject.innerText = chars;
         textLayer.appendChild(spanObject);
@@ -1033,7 +874,6 @@ function drawImage(pageNumber, pageImageUrl, pageAnnotationUrl, jsonText){
         pageCanvasWrapper.appendChild(pageCanvas);
         // ctx.rotate(60* Math.PI/180);
         let ctx = pageCanvas.getContext("2d");
-        // console.log("ctx:", ctx);
         ctx.save();
         var width = pageImg.width;        
         var x = 0;
@@ -1041,11 +881,8 @@ function drawImage(pageNumber, pageImageUrl, pageAnnotationUrl, jsonText){
         var height = pageImg.height;
         g_zpages[pageNumber - 1].width = pageImg.width;
         g_zpages[pageNumber - 1].height = pageImg.height;
-        // console.log("pageHeight:", height);
-        ctx.scale(1, -1);
-		//ctx.scale(1, 1);
-        //ctx.drawImage(this, x, y, width, height);
-		ctx.drawImage(this, x, -height - y, width, height)
+        ctx.scale(1, -1);        
+		ctx.drawImage(this, x, -height - y, width, height);
         drawTextLayer(page, pageImg, pagesJsonObject, ctx);
         ctx.restore();
         // page.appendChild(pageCanvas);
@@ -1056,7 +893,6 @@ function drawImage(pageNumber, pageImageUrl, pageAnnotationUrl, jsonText){
 }
 
 function createSidebar(pageNumber, pageImageUrl){
-    console.log("createSidebar start");
     let thumbnailViewElement = document.getElementById("thumbnailView");
     let aElement = document.createElement("a");
     aElement.href = "#zpage-number-" + pageNumber;
@@ -1078,12 +914,9 @@ function createSidebar(pageNumber, pageImageUrl){
     aElement.appendChild(thumbnailElement);
     aElement.appendChild(thumbnailSelectionRingElement);
     thumbnailViewElement.appendChild(aElement);
-    console.log("createSidebar end");
 }
 
 function drawPage(pageNumber, pageImageUrl, pageTextJsonUrl, pageAnnotationUrl) {
-    console.log("drawPage start");
-    console.log("pageNumber:", pageNumber);
     let requestURL = pageTextJsonUrl;
     let request = new XMLHttpRequest();
     request.open('GET', requestURL);
@@ -1092,7 +925,6 @@ function drawPage(pageNumber, pageImageUrl, pageTextJsonUrl, pageAnnotationUrl) 
     request.onload = function () {
         drawImage(pageNumber, pageImageUrl, pageAnnotationUrl, request.response);
     }
-    console.log("drawPage end");
 }
 
 function setPageNumber(){
@@ -1102,9 +934,7 @@ function setPageNumber(){
 function calulatePageNumber(){
     let viewerContainerElement = document.getElementById("viewerContainer");
     let scrollTop = viewerContainerElement.scrollTop;
-    console.log("scrollTop:", scrollTop);
     let y = 0;
-    console.log("g_zpages.length:", g_zpages.length);
     for(let i = 0; i < g_zpages.length; i ++){
         y += g_zpages[i].height + 10;
         if(scrollTop <= y){
@@ -1131,7 +961,6 @@ function setSideBar(){
         else{   
             g_sidebar_isOpend = false;
             sideBarToggleButton.classList.remove("toggled");
-            outerContainerElement.classList.add("sidebarMoving");
             outerContainerElement.classList.remove("sidebarOpen");
         }
     });
@@ -1163,7 +992,6 @@ function setSideBar(){
 function updatePageButton(){
     let previouseButton = document.getElementById("previous");
     let nextButton = document.getElementById("next");
-    console.log("g_currentPageNumber:", g_currentPageNumber);
     if(g_currentPageNumber > 1){
         previouseButton.disabled = false;
     }
@@ -1210,7 +1038,6 @@ function setScrollEvent(){
 }
 
 function initPageNumber(){
-    console.log("g_zpages.length:", g_zpages.length);
     let numPagesElement = document.getElementById("numPages");
     numPagesElement.textContent = "/" + g_zpages.length;
 }
@@ -1222,11 +1049,9 @@ function setPageNextPreviouseButton(){
         calulatePageNumber();
         let x = 0;
         let y = 10;
-        console.log("g_currentPageNumber:", g_currentPageNumber);
         for(let i = 0; i < g_currentPageNumber; i ++){
             y += g_zpages[i].height + 10;
         }
-        console.log("y:", y);
         g_currentPageNumber ++;
         setPageNumber();
         let viewerContainerElement = document.getElementById("viewerContainer");
@@ -1244,7 +1069,6 @@ function setPageNextPreviouseButton(){
         for(let i = 0; i < g_currentPageNumber - 2; i++){
             y += g_zpages[i].height + 10;
         }
-        console.log("y:", y);
         g_currentPageNumber --;
         setPageNumber();
         let viewerContainerElement = document.getElementById("viewerContainer");
@@ -1254,60 +1078,3 @@ function setPageNextPreviouseButton(){
         }
     });    
 }
-
-
-// function drawTextLayer(zDocumentObj, pageNumber, page, pageImg, ctx){
-//     let lineCount = zDocumentObj.getLineCount(pageNumber);
-//     console.log("lineCount:", lineCount);
-//     let textLayer = document.createElement("div");
-//     textLayer.className = "textLayer";
-//     textLayer.style.width = pageImg.width + "px";
-//     textLayer.style.height = pageImg.height + "px";
-//     page.appendChild(textLayer);
-//     zpage = new ZPage();
-//     zpage.pageNumber = pageNumber;
-//     zpage.width = pageImg.width;
-//     zpage.height = pageImg.height;
-//     g_zpages.push(zpage);
-//     for (let j = 0; j < lineCount; j++) {
-//         let charCount = zDocumentObj.getCharCount(pageNumber, j);
-//         if (charCount <= 0) {
-//             continue;
-//         }
-//         let charWidth = zDocumentObj.getCharWidth(pageNumber, j);
-//         console.log("charWidth:", charWidth);
-//         let xMin = zDocumentObj.getCharXLeft(pageNumber, j, 0);
-//         let xMax = zDocumentObj.getCharXLeft(pageNumber, j, charCount - 1) + charWidth;
-//         let yMax = zDocumentObj.getCharYMax(pageNumber, j);
-
-//         let spanObject = document.createElement("span");
-//         // let xLeft = zDocumentObj.getLineCount(i, j);
-//         console.log("xleft:", multiBy(xMin));
-//         spanObject.style.left = multiBy(xMin) + "px";
-//         spanObject.style.top = multiBy(yMax) + "px";
-//         spanObject.style.fontSize = multiBy(charWidth) + "px";
-//         spanObject.style.fontFamily = "serif";
-//         spanObject.style.transform = "scaleX(1)";
-//         var chars = "";
-//         for(let k = 0; k < charCount; k ++){
-//             chars += String.fromCharCode(zDocumentObj.getCharValue(pageNumber, j, k));
-//         }
-//         ctx.font = multiBy(charWidth) + "px serif";
-//         var textWidth = ctx.measureText(chars).width;
-//         // var textWidth = 200;
-//         // var xLefts = textLine.x_lefts;
-//         // console.log("xLefts:", xLefts);
-//         var canvasWidth = xMax - xMin;
-//         canvasWidth = multiBy(canvasWidth);
-//         console.log("textWidth:", textWidth, "canvasWidth:", canvasWidth);
-//         var scaleX = canvasWidth / textWidth;
-//         console.log("scaleX:", scaleX);
-//         spanObject.style.transform = "scaleX(" + scaleX + ")";
-//         spanObject.innerText = chars;
-//         textLayer.appendChild(spanObject);
-//     }
-// }
-
-
-
-

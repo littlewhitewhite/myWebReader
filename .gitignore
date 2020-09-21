@@ -1,4 +1,5 @@
 # ignore ./data/  ./images/  ./bak/
-data/
-images/
-bak/
+/data/
+/images/
+/bak/
+/dataLink/

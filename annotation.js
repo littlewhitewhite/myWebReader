@@ -23,10 +23,10 @@ function drawLinkAnnotation(requestURL, currentPageNum)
     request.responseType = 'text';
     request.send();
     request.onload = function () {
-        parser=new DOMParser();
+        let parser=new DOMParser();
         // const content = fs.readFileSync(str);
         // console.log("data:", data);
-        xmlDoc=parser.parseFromString(request.response,"text/xml");
+        let xmlDoc=parser.parseFromString(request.response,"text/xml");
     
         var x = xmlDoc.getElementsByTagName("NoteItems")[0].childNodes;
         var numNodes = x.length; 

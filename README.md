@@ -7,7 +7,7 @@ A simple reader use in web.
 [Background](#background)
 [Functionss](#functions)
 [Usage](#usage)
-[What's included](#what's included)
+[What's included](#what's-included)
 [Test](#test)
 
 ## Background
@@ -34,7 +34,7 @@ Provide an interface that include some special functions to the caller to read i
 2. define an object that has special [Format](#format) to store bookInfomation.
 3. call zrun(@YourBookInfo).
 
-#### format
+### format
 ```javascript
 /****************************************************************************************
 * @pageNumber   : currentPageNumber
@@ -86,7 +86,7 @@ You will find the following directories and files like this:
 |---rendererConfusion.js</br>
 |---run.js</br>
 
-#### Test
+## Test
 
 Here are two examples to show viewer  : 
 * `myviewer.html` without annotation links

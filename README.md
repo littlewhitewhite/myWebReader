@@ -4,11 +4,11 @@ A simple reader use in web.
 
 ## Table of Contents
 
-[Background](#background)
-[Functionss](#functions)
-[Usage](#usage)
-[What's included](#what's-included)
-[Test](#test)
+- [Background](#background)
+- [Functionss](#functions)
+- [Usage](#usage)
+- [What's included](#whats-included)
+- [Test](#test)
 
 ## Background
 
@@ -73,9 +73,9 @@ You will find the following directories and files like this:
 
 ./</br>
 |---data/</br>
-	|---1.jpg</br>
-	|---1.json</br>
-	|---mupdf-catalog.json</br>
+|   |---1.jpg</br>
+|   |---1.json</br>
+|   |---mupdf-catalog.json</br>
 |---images/</br>
 |---myviewer.html</br>
 |---pdf_viewer.css</br>

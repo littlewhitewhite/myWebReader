@@ -1,4 +1,4 @@
-import {zrun} from "./rendererConfusion.js"
+import {zrun} from "./renderer.js"
 
 // bookInfo 
 let bookInfo = {

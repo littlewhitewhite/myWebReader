@@ -1,6 +1,5 @@
 "use strict";
-
-
+import {multiBy} from './util.js'
 
 function decodeDescText(descTextBase64){
     let text1 = atob(descTextBase64);
@@ -16,8 +15,6 @@ function decodeDescText(descTextBase64){
 
 function drawLinkAnnotation(requestURL, currentPageNum)
 {
-    // let requestURL = 'data/page.json';
-    console.log("requestUrl:", requestURL);
     let request = new XMLHttpRequest();
     request.open('GET', requestURL);
     request.responseType = 'text';
@@ -91,9 +88,7 @@ function drawLinkAnnotation(requestURL, currentPageNum)
             link.setAttribute("target", " ");
             annotation.appendChild(link);
         }
-        console.log(numNodes);
     };
-    console.log("parseXML done.");
 }
 
 function drawAnnotation(currentPage, currentPageNum, pageAnnotationUrl)

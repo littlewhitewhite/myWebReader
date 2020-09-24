@@ -9,4 +9,4 @@ function multiBy(value) {
     return value * ratio * scale * scale2 / 100.0;
 }
 
-export { multiBy};
+export {multiBy};

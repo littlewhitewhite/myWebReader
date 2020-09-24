@@ -1,4 +1,4 @@
-import {zrun} from "./renderer.js"
+import {zrun} from "./rendererConfusion.js"
 
 // bookInfo 
 let bookInfo = {
@@ -14,7 +14,6 @@ let bookInfo = {
 		pageImageUrl: 'data/2.jpg',
 		pageImageDir: 2,
 		pageTextJsonUrl: 'data/2.json'
-		// pageAnnotationUrl: 'data/2-notes.xml'
 	},
 	{
 		pageNumber: 3,

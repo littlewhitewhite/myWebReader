@@ -1,6 +1,5 @@
 import {zrun} from "./rendererConfusion.js"
 
-
 let bookInfoLink = {
 	pageUrlArray : [
 	{
@@ -13,7 +12,8 @@ let bookInfoLink = {
 		pageNumber: 2,
 		pageImageUrl: 'dataLink/2.jpg',
 		pageImageDir: 2,
-		pageTextJsonUrl: 'dataLink/2.json'
+		pageTextJsonUrl: 'dataLink/2.json',
+		pageAnnotationUrl: 'dataLink/notes.xml'
 	},
 	{
 		pageNumber: 3,
